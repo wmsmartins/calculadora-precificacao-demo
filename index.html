@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de Precificação para Marketplaces (demo)</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--fg:#1d2733;--muted:#5f6b7a;--line:#d9dee5;--accent:#0f4c8a;--ok:#1e7e34;--warn:#b26a00;--bad:#c62828;--ok-soft:#e3f3e7;--bad-soft:#fde7e7;--warn-soft:#fff3dc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px 16px 40px}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:16px}
+header h1{margin:0;font-size:1.6rem}
+header p{margin:4px 0 0;color:var(--muted)}
+.aviso{background:var(--warn-soft);border:1px solid #f0d49b;border-radius:8px;padding:8px 12px;font-size:.88rem}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.card h2{margin:0 0 10px;font-size:1.05rem;color:var(--accent)}
+.campos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
+label{display:grid;gap:3px;font-size:.82rem;color:var(--muted)}
+input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;color:var(--fg);background:#fff;width:100%}
+input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.tabela{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{background:var(--accent);color:#fff;font-weight:600}
+td input{width:68px;text-align:right;padding:5px 6px}
+.num{font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:600}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.barra{height:10px;border-radius:5px;background:var(--line);overflow:hidden;min-width:80px}
+.barra i{display:block;height:100%}
+.sim{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.sim label{min-width:180px}
+footer{color:var(--muted);font-size:.82rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Calculadora de Precificação para Marketplaces</h1>
+    <p>Demonstração: informe os custos do produto e veja o preço ideal, o lucro e a margem real em cada marketplace.</p>
+  </header>
+  <div class="aviso">Demonstração com <b>2 marketplaces e taxas de exemplo</b>. Na versão completa, as taxas de cada marketplace ficam numa aba editável e são conferidas com os valores vigentes.</div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>1. Produto e custos</h2>
+      <div class="campos">
+        <label>Produto / SKU<input id="nome" value="Garrafa térmica 500 ml"></label>
+        <label>Custo do fornecedor (R$)<input id="custo" type="number" step="0.01" value="38.90"></label>
+        <label>Embalagem (R$)<input id="emb" type="number" step="0.01" value="2.50"></label>
+        <label>Custo fixo por venda (R$)<input id="fixo" type="number" step="0.01" value="1.20"></label>
+        <label>Imposto, Simples Nacional (%)<input id="imp" type="number" step="0.1" value="6"></label>
+        <label>Margem de lucro desejada (%)<input id="margem" type="number" step="0.5" value="20"></label>
+        <label>Alerta se a margem ficar abaixo de (%)<input id="minimo" type="number" step="0.5" value="10"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Taxas dos marketplaces (editáveis)</h2>
+      <div class="tabela">
+        <table>
+          <thead><tr><th>Marketplace</th><th>Comissão %</th><th>Taxa fixa R$</th><th>Frete R$</th><th>Antecipação %</th></tr></thead>
+          <tbody id="taxas"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>3. Preço sugerido e comparativo</h2>
+    <div class="tabela">
+      <table>
+        <thead><tr><th>Marketplace</th><th>Preço sugerido</th><th>Ponto de equilíbrio</th><th>Taxas totais</th><th>Lucro líquido</th><th>Margem real</th><th>Margem</th></tr></thead>
+        <tbody id="resultado"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>4. Simulador: e se eu vender por outro preço?</h2>
+    <div class="sim">
+      <label>Preço de venda (R$)<input id="precoSim" type="number" step="0.01" value="79.90"></label>
+    </div>
+    <div class="tabela" style="margin-top:10px">
+      <table>
+        <thead><tr><th>Marketplace</th><th>Lucro líquido</th><th>Margem real</th><th>Situação</th></tr></thead>
+        <tbody id="simulacao"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Projeto de demonstração · Wagner Martins · desenvolvido em HTML e JavaScript, sem servidor; a mesma lógica pode ser entregue em Google Sheets ou Excel.</footer>
+</div>
+
+<script>
+const mercados = [
+  { nome: 'Mercado Livre Clássico', comissao: 12, fixa: 6.00, frete: 0, antecip: 0, cor: '#e0b000' },
+  { nome: 'Shopee', comissao: 20, fixa: 4.00, frete: 0, antecip: 0, cor: '#ee4d2d' },
+];
+const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const pct = v => v.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+const num = id => parseFloat(document.getElementById(id).value.replace(',', '.')) || 0;
+
+function montarTaxas() {
+  const tb = document.getElementById('taxas');
+  tb.innerHTML = '';
+  mercados.forEach((m, i) => {
+    const tr = document.createElement('tr');
+    const td0 = document.createElement('td'); td0.textContent = m.nome; tr.appendChild(td0);
+    ['comissao', 'fixa', 'frete', 'antecip'].forEach(k => {
+      const td = document.createElement('td');
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.step = '0.01'; inp.value = m[k];
+      inp.setAttribute('aria-label', m.nome + ' ' + k);
+      inp.addEventListener('input', () => { m[k] = parseFloat(inp.value) || 0; calcular(); });
+      td.appendChild(inp); tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+// Preço P tal que: P - custos - taxa fixa - frete - P*(comissão + imposto + antecipação) = margem * P
+function precoPara(m, margem) {
+  const custos = num('custo') + num('emb') + num('fixo') + m.fixa + m.frete;
+  const percentuais = (m.comissao + num('imp') + m.antecip + margem) / 100;
+  return percentuais >= 1 ? NaN : custos / (1 - percentuais);
+}
+function lucroEm(m, preco) {
+  const custos = num('custo') + num('emb') + num('fixo') + m.fixa + m.frete;
+  const taxas = preco * (m.comissao + num('imp') + m.antecip) / 100 + m.fixa + m.frete;
+  return { lucro: preco - custos - preco * (m.comissao + num('imp') + m.antecip) / 100, taxas };
+}
+function linha(cels) {
+  const tr = document.createElement('tr');
+  cels.forEach(c => { const td = document.createElement('td'); if (c instanceof Node) td.appendChild(c); else td.textContent = c; td.className = 'num'; tr.appendChild(td); });
+  return tr;
+}
+function pill(ok, txt) { const s = document.createElement('span'); s.className = 'pill ' + (ok ? 'ok' : 'bad'); s.textContent = txt; return s; }
+function barra(margem, cor) {
+  const b = document.createElement('div'); b.className = 'barra';
+  const i = document.createElement('i'); i.style.width = Math.max(0, Math.min(100, margem * 2.5)) + '%'; i.style.background = cor;
+  b.appendChild(i); return b;
+}
+
+function calcular() {
+  const minimo = num('minimo');
+  const res = document.getElementById('resultado'); res.innerHTML = '';
+  mercados.forEach(m => {
+    const p = precoPara(m, num('margem'));
+    const eq = precoPara(m, 0);
+    if (!isFinite(p)) { res.appendChild(linha([m.nome, 'Margem impossível com essas taxas', '', '', '', '', ''])); return; }
+    const { lucro, taxas } = lucroEm(m, p);
+    const margemReal = lucro / p * 100;
+    res.appendChild(linha([m.nome, brl(p), brl(eq), brl(taxas), brl(lucro), pct(margemReal), barra(margemReal, m.cor)]));
+  });
+  const sim = document.getElementById('simulacao'); sim.innerHTML = '';
+  const preco = num('precoSim');
+  mercados.forEach(m => {
+    const { lucro } = lucroEm(m, preco);
+    const margemReal = preco > 0 ? lucro / preco * 100 : 0;
+    const ok = margemReal >= minimo;
+    sim.appendChild(linha([m.nome, brl(lucro), pct(margemReal), pill(ok, lucro < 0 ? 'Prejuízo' : ok ? 'Dentro da meta' : 'Abaixo do mínimo')]));
+  });
+}
+
+montarTaxas();
+document.querySelectorAll('.campos input, #precoSim').forEach(i => i.addEventListener('input', calcular));
+calcular();
+</script>
+</body>
+</html>
