@@ -4,6 +4,8 @@ Demonstração de uma calculadora que, a partir dos custos de um produto, mostra
 
 **Acesse:** https://wmsmartins.github.io/calculadora-precificacao-demo/
 
+**Versão completa** (8 marketplaces, até 100 produtos, Excel e Google Sheets): https://pay.kiwify.com.br/mHDKpxZ
+
 - Taxas de cada marketplace editáveis na própria tela
 - Comparativo lado a lado entre marketplaces, com barra de margem
 - Simulador: informe um preço e veja lucro, margem e alerta de margem mínima
